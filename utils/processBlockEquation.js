@@ -1,4 +1,4 @@
-export function processLatexBlock(block, notionToken, pageId) {
+export function processLatexBlock(block, notionToken, pageId, level = 1, parentBlockId = null) {
     console.log('DADES DEL BLOC abans de processar:', JSON.stringify(block, null, 2));
     let jsonBlockEquation;
     try {
@@ -12,7 +12,11 @@ export function processLatexBlock(block, notionToken, pageId) {
         return null;
     }
     try {
-        const resultat = enviarBlockEquationAPI(jsonBlockEquation, block.id, notionToken, pageId); // Passa block.id
+        // Determina el parentId a utilitzar (el pageId o el parentBlockId si és un bloc anidat)
+        const parentId = level > 1 && parentBlockId ? parentBlockId : pageId;
+        console.log(`Bloc de nivell ${level}, utilitzant parentId: ${parentId}`);
+        
+        const resultat = enviarBlockEquationAPI(jsonBlockEquation, block.id, notionToken, parentId);
         return resultat;
     } catch (error) {
         console.error("Error enviant l'equació del bloc:", error);
@@ -44,7 +48,7 @@ function obtenirExpression(block) {
     }
 }
 
-async function enviarBlockEquationAPI(jsonBlockEquation, blockId, notionToken, pageId) {
+async function enviarBlockEquationAPI(jsonBlockEquation, blockId, notionToken, parentId) {
     // APPEND
     try {
         const appendRes = await fetch(`/api/notionAPPEND`, {
@@ -52,7 +56,12 @@ async function enviarBlockEquationAPI(jsonBlockEquation, blockId, notionToken, p
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ jsonBlockEquation, blockId, notionToken, pageId }),
+            body: JSON.stringify({ 
+                jsonBlockEquation, 
+                blockId, 
+                notionToken, 
+                parentId // Canviat de pageId a parentId
+            }),
         });
 
         if (!appendRes.ok) {
@@ -65,7 +74,7 @@ async function enviarBlockEquationAPI(jsonBlockEquation, blockId, notionToken, p
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ blockId, notionToken, pageId }),
+            body: JSON.stringify({ blockId, notionToken, parentId }), // Canviat de pageId a parentId
         });
 
         if (!deleteRes.ok) {

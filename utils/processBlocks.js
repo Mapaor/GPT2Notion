@@ -2,7 +2,7 @@ import { processInlineLatex } from './processInlineEquation';
 import { processLatexBlock } from './processBlockEquation';
 import fetchData from './fetchData';
 
-export async function processBlocks(blocks, notionToken, pageId, level = 1) {
+export async function processBlocks(blocks, notionToken, pageId, level = 1, parentBlockId = null) {
     console.log(`NOTION TOKEN al principi de processBlocks (nivell ${level}):`, notionToken);
     const processables = [
         'paragraph',
@@ -33,7 +33,7 @@ export async function processBlocks(blocks, notionToken, pageId, level = 1) {
             console.log(`Comprovacions fetes pel bloc al nivell ${level}.`);
 
             // Afegim un retard per evitar saturar l'API
-            await new Promise((resolve) => setTimeout(resolve, 300)); // Espera 300 mil·lisegons
+            await new Promise((resolve) => setTimeout(resolve, 334)); // Espera 334 mil·lisegons (Restricció de la API de Notoin: màxim 3 peticions per segon)
 
             if (block.type === 'paragraph') {
                 const containsBlockEquation = rich.some((t) => {
@@ -44,7 +44,10 @@ export async function processBlocks(blocks, notionToken, pageId, level = 1) {
                 if (containsBlockEquation) {
                     console.log(`Bloc que conté una block equation detectat al nivell ${level}.`);
                     try {
-                        const processamentLatexBlock = await retry(() => processLatexBlock(block, notionToken, pageId), 3);
+                        // Passem el level i el parentBlockId
+                        const processamentLatexBlock = await retry(() => 
+                            processLatexBlock(block, notionToken, pageId, level, parentBlockId), 3);
+                        
                         if (processamentLatexBlock !== null) {
                             numBlocsProcessats++;
                             continue;
@@ -89,7 +92,8 @@ export async function processBlocks(blocks, notionToken, pageId, level = 1) {
                     
                     if (children && children.length > 0) {
                         console.log(`Obtinguts ${children.length} children pel bloc ${block.id}. Processant recursivament...`);
-                        const childResult = await processBlocks(children, notionToken, pageId, level + 1);
+                        // Passem el bloc actual com a parentBlockId als seus children
+                        const childResult = await processBlocks(children, notionToken, pageId, level + 1, block.id);
                         numBlocsProcessats += childResult.numBlocsProcessats;
                         if (childResult.msgErrorOutput) {
                             msgErrorOutput = childResult.msgErrorOutput;
