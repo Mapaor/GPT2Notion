@@ -32,6 +32,16 @@
   font-size: 0.9rem;
 }
 
+.msgOutput {
+  margin-top: 2rem;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
 .placeholder {
   margin-top: 2rem;
   color: #666;
@@ -57,4 +67,11 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+}
+
+.subtitolOutput {
+  margin-top: 1.5rem;
+  color: #333;
+  font-weight: bold;
+  margin-top: 2.5rem;
 }

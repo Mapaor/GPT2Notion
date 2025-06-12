@@ -1,72 +1,130 @@
-import { processBlockEquation, separateEquations } from './separarLatex';
+import { processInlineLatex } from './processInlineEquation';
+import { processLatexBlock } from './processBlockEquation';
+import fetchData from './fetchData';
 
-/**
- * Llista de blocs compatibles per al processament.
- */
-const blocsCompatibles = [
-  'paragraph',
-  'bulleted_list_item',
-  'numbered_list_item',
-  'heading_3',
-  'heading_2',
-  'heading_1',
-];
+export async function processBlocks(blocks, notionToken, pageId, level = 1) {
+    console.log(`NOTION TOKEN al principi de processBlocks (nivell ${level}):`, notionToken);
+    const processables = [
+        'paragraph',
+        'bulleted_list_item',
+        'numbered_list_item',
+        'heading_1',
+        'heading_2',
+        'heading_3',
+    ];
 
-/**
- * Processa els blocs obtinguts de Notion i els classifica segons el seu tipus,
- * i aplica el processament adequat segons el contingut.
- * @param {Array} blocks - Llista de blocs obtinguts de Notion.
- * @returns {Array} Una llista de blocs processats.
- */
-export function processBlocks(blocks) {
-  return blocks
-    .filter((block) => blocsCompatibles.includes(block.type)) // Filtra només blocs compatibles
-    .map((block) => {
-      if (block.type === 'paragraph') {
-        // Processa blocs "paragraph" per block equations
-        const blockEquation = processBlockEquation(block);
-        if (blockEquation) {
-          return { ...block, processedAs: 'block_equation', blockEquation };
+    // Limitar la recursió a 3 nivells
+    if (level > 3) {
+        console.log("Nivell màxim d'anidament (3) assolit. No es processaran més nivells.");
+        return { numBlocsProcessats: 0, msgErrorOutput: null };
+    }
+
+    let numBlocsProcessats = 0;
+    let msgErrorOutput = null;
+    console.log(`Ara començarem a processar blocs de nivell ${level}.`);
+
+    for (const block of blocks) {
+        try {
+            console.log(`Fent les comprovacions pel bloc al nivell ${level}...`);
+            if (!block || !block.id || !block.type) continue;
+            if (block.archived || block.in_trash) continue;
+            const rich = block[block.type]?.rich_text || [];
+            if (!processables.includes(block.type)) continue;
+            console.log(`Comprovacions fetes pel bloc al nivell ${level}.`);
+
+            // Afegim un retard per evitar saturar l'API
+            await new Promise((resolve) => setTimeout(resolve, 300)); // Espera 300 mil·lisegons
+
+            if (block.type === 'paragraph') {
+                const containsBlockEquation = rich.some((t) => {
+                    const content = t.text?.content || '';
+                    return content.startsWith('\\[') && content.endsWith('\\]');
+                });
+
+                if (containsBlockEquation) {
+                    console.log(`Bloc que conté una block equation detectat al nivell ${level}.`);
+                    try {
+                        const processamentLatexBlock = await retry(() => processLatexBlock(block, notionToken, pageId), 3);
+                        if (processamentLatexBlock !== null) {
+                            numBlocsProcessats++;
+                            continue;
+                        } else {
+                            console.error(`Un 'paragraph' que contenia \\[ i \\] ha estat mal processat al nivell ${level}, processLatexBloc ha retornat null.`);
+                            msgErrorOutput = "Un 'paragraph' que contenia \\[ i \\] ha estat mal processat, processLatexBloc ha retornat null.";
+                        }
+                    } catch (error) {
+                        console.error(`Error inesperat al fer processLatexBlock al nivell ${level}:`, error);
+                        msgErrorOutput = "Error inesperat al fer processLatexBlock.";
+                    }
+                }
+            }
+
+            // Si és un bloc processable, comprovem si conté inline equations
+            const containsInlineLatex = rich.some((t) =>
+                t.text?.content?.includes('\\(') && t.text?.content?.includes('\\)')
+            );
+
+            if (containsInlineLatex) {
+                console.log(`Bloc que conté una inline equation detectat al nivell ${level}. Tipus: ${block.type}`);
+                try {
+                    console.log('NOTION TOKEN abans de processInlineLatex:', notionToken);
+                    const processamentLatexInline = await retry(() => processInlineLatex(block, notionToken, pageId), 3);
+                    if (processamentLatexInline !== null) {
+                        numBlocsProcessats++;
+                    }
+                } catch (error) {
+                    console.error(`Hi ha hagut un error inesperat fent processInlineLatex al nivell ${level}:`, error);
+                    msgErrorOutput = "Hi ha hagut un error inesperat fent processInlineLatex.";
+                }
+            }
+
+            // Processar els children dels blocs de tipus llista
+            if ((block.type === 'bulleted_list_item' || block.type === 'numbered_list_item') && 
+                block.has_children) {
+                
+                console.log(`Bloc de tipus ${block.type} amb children detectat al nivell ${level}. Fent fetch dels children...`);
+                try {
+                    // Fer la petició per obtenir els children del bloc
+                    const children = await fetchData(block.id, notionToken);
+                    
+                    if (children && children.length > 0) {
+                        console.log(`Obtinguts ${children.length} children pel bloc ${block.id}. Processant recursivament...`);
+                        const childResult = await processBlocks(children, notionToken, pageId, level + 1);
+                        numBlocsProcessats += childResult.numBlocsProcessats;
+                        if (childResult.msgErrorOutput) {
+                            msgErrorOutput = childResult.msgErrorOutput;
+                        }
+                    } else {
+                        console.log(`No s'han trobat children per al bloc ${block.id} o hi ha hagut un error obtenint-los.`);
+                    }
+                    
+                    console.log(`Finalitzat el processament dels children al nivell ${level+1} per al bloc de tipus ${block.type}`);
+                } catch (error) {
+                    console.error(`Error inesperat obtenint o processant els children recursivament al nivell ${level}:`, error);
+                    msgErrorOutput = "Error inesperat obtenint o processant els children recursivament.";
+                }
+            }
+        } catch (error) {
+            console.error(`Error inesperat processant un bloc al nivell ${level}:`, error);
+            msgErrorOutput = "Error inesperat processant un bloc.";
         }
+    }
 
-        // Si no és una block equation, processa inline equations
-        const richText = block.paragraph?.rich_text || [];
-        const processedRichText = richText.reduce((acc, textObj) => {
-          const separated = separateEquations(textObj); // Processa inline equations
-          return acc.concat(separated);
-        }, []);
-        return {
-          ...block,
-          paragraph: {
-            ...block.paragraph,
-            rich_text: processedRichText,
-          },
-          processedAs: 'inline_equation',
-        };
-      } else {
-        // Processa altres tipus de blocs (no "paragraph") per inline equations
-        const richText = block[block.type]?.rich_text || [];
-        const hasInlineEquation = richText.some((textObj) =>
-          textObj.text?.content?.includes('\\(') && textObj.text?.content?.includes('\\)')
-        );
+    console.log(`Tots els blocs de nivell ${level} iterats. Num de blocs processats: ${numBlocsProcessats}`);
+    const outputFinal = { numBlocsProcessats, msgErrorOutput };
+    console.log(`Output final del nivell ${level}:`, outputFinal);
+    return outputFinal;
+}
 
-        if (!hasInlineEquation) {
-          // Si no conté inline equations, no es processa
-          return { ...block, processedAs: null };
+// Funció de reintents
+async function retry(fn, retries) {
+    while (retries > 0) {
+        try {
+            return await fn();
+        } catch (error) {
+            console.error(`Error durant l'execució. Reintents restants: ${retries - 1}`, error);
+            retries--;
+            if (retries === 0) throw error;
         }
-
-        const processedRichText = richText.reduce((acc, textObj) => {
-          const separated = separateEquations(textObj); // Processa inline equations
-          return acc.concat(separated);
-        }, []);
-        return {
-          ...block,
-          [block.type]: {
-            ...block[block.type],
-            rich_text: processedRichText,
-          },
-          processedAs: 'inline_equation',
-        };
-      }
-    });
+    }
 }

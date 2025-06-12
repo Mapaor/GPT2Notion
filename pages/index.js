@@ -1,83 +1,60 @@
 import { useState } from 'react';
 import styles from '../styles/PagPrincipal.module.css';
+import fetchData from '../utils/fetchData'; // Import correcte
+import { processBlocks } from '../utils/processBlocks'; // Import correcte
 
 export default function Home() {
   const [pageId, setPageId] = useState('');
   const [notionToken, setNotionToken] = useState('');
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [msgOutput, setOutput] = useState(null);
 
-  const fetchData = async () => {
-    setError(null);
-    setData(null);
+  const fetchDataHandler = async () => {
     try {
-      const res = await fetch(`/api/notionGET`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pageId, notionToken }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Error: ${res.status}`);
-      }
-      const json = await res.json();
-      setData(json);
+      setError(null);
+      setData(null);
+      const result = await fetchData(pageId, notionToken, setError);
+      if (result) setData(result);
     } catch (err) {
+      console.error('Error inesperat:', err.message);
       setError(err.message);
     }
   };
 
   const renderLatex = async () => {
-    setError(null);
-    try {
-      // Obtenim els blocs de la pàgina
-      const res = await fetch(`/api/notionGET`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pageId, notionToken }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Error obtenint blocs: ${res.status}`);
+    let outputRebut = { numBlocsProcessats: 0, msgErrorOutput: null };
+    try{
+      setError(null);
+      setOutput(null);
+      // Obtenim els blocs
+      const jsonBlocs = await fetchData(pageId, notionToken, setError); // Passa setError
+      if (!jsonBlocs) return; 
+      console.log('fetchData correcte');
+      // Processem els blocs
+      try {
+        console.log("Abans de processar els blocs");
+        outputRebut = await processBlocks(jsonBlocs, notionToken, pageId, 1); // Passa directament json (ja és un array de blocs)
+        console.log("Blocs processats correctament");
+        console.log("outputRebut:", outputRebut);
+        if (outputRebut.msgErrorOutput !== null) {
+          setOutput(outputRebut.msgErrorOutput);
+        } else {
+          if (outputRebut.numBlocsProcessats === 0) {
+            setOutput("No s'han trobat blocs amb indicadors de inline o block equations.");
+          } else {
+            setOutput(`Tot ha anat correctament. Blocs renderitzats: ${outputRebut.numBlocsProcessats}`);
+          }
+        }
+      } catch (err) {
+        console.error('Error al fer processBlocks:', err.message);
+        setError(err.message);
       }
-
-      const json = await res.json();
-
-      // Processa les block equations
-      const appendDeleteRes = await fetch(`/api/notionAPPEND_DELETE`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ blocks: json.results, notionToken, pageId }), // Passa també el pageId
-      });
-
-      if (!appendDeleteRes.ok) {
-        throw new Error(`Error processant block equations: ${appendDeleteRes.status}`);
-      }
-
-      // Processa les inline equations
-      const patchRes = await fetch(`/api/notionPATCH`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ blocks: json.results, notionToken }), // Passa els blocs i el notionToken
-      });
-
-      if (!patchRes.ok) {
-        throw new Error(`Error actualitzant blocs amb inline equations: ${patchRes.status}`);
-      }
-
-      const result = await patchRes.json();
-      setData(result);
-    } catch (err) {
+    } catch (err){
+      console.error('Error al fer fetchData:', err.message);
       setError(err.message);
     }
+    console.log("renderLatex finalitzat!");
   };
 
   return (
@@ -100,27 +77,41 @@ export default function Home() {
         onChange={(e) => setPageId(e.target.value)}
       />
       <h3 className={styles.subtitle}>Tria una opció</h3>
-      <button className={styles.botoPagPrincipal} onClick={fetchData}>
+      <button className={styles.botoPagPrincipal} onClick={fetchDataHandler}>
         Obtenir blocs
       </button>
       <button className={styles.botoPagPrincipal} onClick={renderLatex}>
         Renderitzar LaTeX
       </button>
       <h3 className={styles.subtitle}>Output</h3>
+      <div className={styles.outputContainer}>
+      {error && (
+        <>
+          <p className={styles.subtitolOutput}>Error</p>
+          <pre className={styles.error}>
+            {JSON.stringify({ error }, null, 2)}
+          </pre>
+        </>
+      )}
 
-      {error && <p className={styles.error}>Error: {error}</p>}
+      {msgOutput && (
+        <>
+          <p className={styles.subtitolOutput}>Missatge Output</p>
+          <pre className={styles.msgOutput}>
+            {JSON.stringify(msgOutput, null, 2)}
+          </pre>
+        </>
+      )}
 
       {data && (
+        <>
+          <p className={styles.subtitolOutput}>JSON Data</p>
         <pre className={styles.data}>
           {JSON.stringify(data, null, 2)}
         </pre>
+        </>
       )}
-
-      {!data && !error && (
-        <p className={styles.placeholder}>
-          Introdueix un Page ID i un Notion Token per obtenir els blocs.
-        </p>
-      )}
+      </div>
     </div>
   );
 }
