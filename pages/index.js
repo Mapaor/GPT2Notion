@@ -2,6 +2,8 @@ import { useState } from 'react';
 import styles from '../styles/PagPrincipal.module.css';
 import fetchData from '../utils/fetchData'; // Import correcte
 import { processBlocks } from '../utils/processBlocks'; // Import correcte
+import Head from 'next/head';
+
 
 export default function Home() {
   const [pageId, setPageId] = useState('');
@@ -59,6 +61,12 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      <Head>
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+      </Head>
       <h1 className={styles.title}>Renderitzar LaTeX amb l'API de Notion</h1>
       <h3 className={styles.subtitle}>NOTION_TOKEN</h3>
       <input
@@ -114,28 +122,39 @@ export default function Home() {
       </div>
       <hr className={styles.divider} />
       <h1 className={styles.title}>Exemple</h1>
-<h3 className={styles.subtitle}>Pàgina de Notion d'exemple</h3>
-<a
-  href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-ChatGPT-o-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b?source=copy_link"
-  target="_blank"
-  rel="noopener noreferrer"
-  className={styles.notionBookmark}
->
-  Renderitzar LaTeX DeepSeek
-</a>
-<p className={styles.grayedOut}>Utilitza el NOTION_TOKEN i el Page ID que apareixen als placeholders, o entra a la <a 
-href="./botoRenderLatex"
-target="_blank"
-rel="noopener noreferrer"
->subpàgina</a> on sols hi ha un botó ja configurat per l'exemple.</p>
-<h3 className={styles.subtitle}>Instruccions</h3>
-<div className={styles.instructions}>
-  <ol>
-    <li>Copia la resposta del DeepSeek a la pàgina d'exemple.</li>
-    <li>Assegura't que les block equations estan en blocs individuals.</li>
-    <li>Fes clic al botó "Renderitzar LaTeX" per processar els blocs.</li>
-  </ol>
-</div>
+      <h3 className={styles.subtitle}>Pàgina de Notion d'exemple</h3>
+      <a
+        href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-ChatGPT-o-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b?source=copy_link"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.notionBookmark}
+      >
+        Renderitzar LaTeX DeepSeek
+      </a>
+      <p className={styles.grayedOut}>Utilitza el NOTION_TOKEN i el Page ID que apareixen als placeholders, o entra a la <a 
+      href="./botoRenderLatex"
+      target="_blank"
+      rel="noopener noreferrer"
+      >subpàgina</a> on sols hi ha un botó ja configurat per l'exemple.</p>
+      <h3 className={styles.subtitle}>Instruccions</h3>
+      <div className={styles.instructions}>
+        <ol>
+          <li>Copia la resposta del DeepSeek a la pàgina d'exemple.</li>
+          <li>Assegura't que les block equations estan en blocs individuals.</li>
+          <li>Fes clic al botó "Renderitzar LaTeX" per processar els blocs.</li>
+        </ol>
+      </div>
+      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+        <a
+          href="https://github.com/Mapaor/GPT2Notion"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Veure el repositori de GitHub"
+          style={{ color: '#333', fontSize: '2rem' }}
+        >
+          <i className={`fab fa-github ${styles.githubIcon}`}></i>
+        </a>
+      </div>
     </div>
   );
 }

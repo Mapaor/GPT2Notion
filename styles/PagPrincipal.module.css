@@ -154,3 +154,12 @@
 .descripcio a {
   color: #666;
 }
+
+.githubIcon {
+  transition: color 0.2s, transform 0.2s;
+}
+
+.githubIcon:hover {
+  color: #4CAF50;
+  transform: scale(1.1);
+}
