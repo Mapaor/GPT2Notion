@@ -2,7 +2,7 @@
 Aquest repositori conté els fitxers d'una aplicació web amb el framework NextJS.
 
 ### Com clonar en línia
-1. Fas un fork del repositori
+1. Fas un fork del repositori.
 2. Edites (des de GitHub web mateix) el que vulguis editar (per exemple el notion_token i el page id de `pages/botoRenderLatex.js`).
 3. Crees un nou projecte de Vercel.
 4. Selecciones aquest repositori ja existent de GitHub (hauràs de donar accés a Vercel com a GitHub App) i tries, si no està ja per defecte, el framework 'NextJS'.
