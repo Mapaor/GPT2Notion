@@ -112,6 +112,30 @@ export default function Home() {
         </>
       )}
       </div>
+      <hr className={styles.divider} />
+      <h1 className={styles.title}>Exemple</h1>
+<h3 className={styles.subtitle}>Pàgina de Notion d'exemple</h3>
+<a
+  href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-ChatGPT-o-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b?source=copy_link"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.notionBookmark}
+>
+  Renderitzar LaTeX ChatGPT o DeepSeek
+</a>
+<p className={styles.grayedOut}>Utilitza el NOTION_TOKEN i el Page ID que apareixen als placeholders, o entra a la <a 
+href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-ChatGPT-o-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b/BotoRenderLatex"
+target="_blank"
+rel="noopener noreferrer"
+>subpàgina</a> on sols hi ha un botó ja configurat per l'exemple.</p>
+<h3 className={styles.subtitle}>Instruccions</h3>
+<div className={styles.instructions}>
+  <ol>
+    <li>Copia la resposta del DeepSeek o el ChatGPT a la pàgina d'exemple.</li>
+    <li>Assegura't que les block equations estan en blocs individuals.</li>
+    <li>Fes clic al botó "Renderitzar LaTeX" per processar els blocs.</li>
+  </ol>
+</div>
     </div>
   );
 }
