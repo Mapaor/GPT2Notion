@@ -59,7 +59,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Notion Children Blocks Viewer</h1>
+      <h1 className={styles.title}>Renderitzar LaTeX amb l'API de Notion</h1>
       <h3 className={styles.subtitle}>NOTION_TOKEN</h3>
       <input
         className={styles.inputUsuari}
@@ -121,7 +121,7 @@ export default function Home() {
   rel="noopener noreferrer"
   className={styles.notionBookmark}
 >
-  Renderitzar LaTeX ChatGPT o DeepSeek
+  Renderitzar LaTeX DeepSeek
 </a>
 <p className={styles.grayedOut}>Utilitza el NOTION_TOKEN i el Page ID que apareixen als placeholders, o entra a la <a 
 href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-ChatGPT-o-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b/BotoRenderLatex"
@@ -131,7 +131,7 @@ rel="noopener noreferrer"
 <h3 className={styles.subtitle}>Instruccions</h3>
 <div className={styles.instructions}>
   <ol>
-    <li>Copia la resposta del DeepSeek o el ChatGPT a la pàgina d'exemple.</li>
+    <li>Copia la resposta del DeepSeek a la pàgina d'exemple.</li>
     <li>Assegura't que les block equations estan en blocs individuals.</li>
     <li>Fes clic al botó "Renderitzar LaTeX" per processar els blocs.</li>
   </ol>
