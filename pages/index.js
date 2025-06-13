@@ -124,7 +124,7 @@ export default function Home() {
   Renderitzar LaTeX DeepSeek
 </a>
 <p className={styles.grayedOut}>Utilitza el NOTION_TOKEN i el Page ID que apareixen als placeholders, o entra a la <a 
-href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-ChatGPT-o-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b/BotoRenderLatex"
+href="./botoRenderLatex"
 target="_blank"
 rel="noopener noreferrer"
 >subpàgina</a> on sols hi ha un botó ja configurat per l'exemple.</p>

@@ -48,15 +48,17 @@ export default function DefaultLaTeXRenderButton() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>LaTeX Renderer</h1>
+      <h1 className={styles.title}>Exemple ràpid</h1>
+      <p className={styles.descripcio}>
+        Clica el botó per renderitzar els blocs d'<a href="https://silky-gastonia-a58.notion.site/Renderitzar-LaTeX-DeepSeek-27ce4dfb5f5543e8bcaad63dd3ea1d8b" target="_blank" rel="noopener noreferrer">aquesta</a> pàgina de Notion.
+      </p>
       <button className={styles.botoPagPrincipal} onClick={renderLatex}>
         Renderitzar LaTeX
       </button>
-      <h3 className={styles.subtitle}>Output</h3>
       <div className={styles.outputContainer}>
         {error && (
           <>
-            <p className={styles.subtitolOutput}>Error</p>
+            <h3 className={styles.subtitle}>Error</h3>
             <pre className={styles.error}>
               {JSON.stringify({ error }, null, 2)}
             </pre>
@@ -65,7 +67,7 @@ export default function DefaultLaTeXRenderButton() {
 
         {msgOutput && (
           <>
-            <p className={styles.subtitolOutput}>Missatge Output</p>
+            <h3 className={styles.subtitle}>Output</h3>
             <pre className={styles.msgOutput}>
               {JSON.stringify(msgOutput, null, 2)}
             </pre>
